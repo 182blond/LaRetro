@@ -11,7 +11,7 @@
     </header>
 
     <!-- Main -->
-    <main class="mx-auto flex flex-1 overflow-hidden">
+    <main class="w-full mx-auto flex flex-1 overflow-hidden">
       <RouterView />
     </main>
   </div>

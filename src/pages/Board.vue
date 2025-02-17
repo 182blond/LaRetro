@@ -1,5 +1,5 @@
 <template>
-  <div class="grid grid-cols-1 sm:grid-cols-4 gap-1 p-1">
+  <div class="w-full grid grid-cols-1 sm:grid-cols-4 gap-1 p-1">
     <!-- Column Category -->
     <div v-for="category in board.categories" :key="category.id" class="p-4 flex flex-col space-y-4 overflow-hidden">
 
