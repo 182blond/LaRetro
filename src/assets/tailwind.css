@@ -1,1 +1,95 @@
 @import "tailwindcss";
+
+.category-improve {
+  --color-bg: #d9fdd3;
+  --color-border: #8bd48b;
+  --color-text: #2e7d32;
+}
+
+.category-actions {
+  --color-bg: #ffe1e1;
+  --color-border: #ff9f9f;
+  --color-text: #b71c1c;
+}
+
+.category-good {
+  --color-bg: #fff3b0;
+  --color-border: #ffd447;
+  --color-text: #b07c00;
+}
+
+.category-ideas {
+  --color-bg: #d8f3ff;
+  --color-border: #78cfff;
+  --color-text: #0d47a1;
+}
+
+
+.category-box {
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+.category-title {
+  color: var(--color-text);
+  font-weight: bold;
+  font-size: 1.5rem;
+}
+
+
+.app-bg-login {
+  background-color: rgba(236, 235, 228, 0.95); /* fondo semitransparente */
+  background-image: linear-gradient(rgba(255,255,255,0.4), rgba(255,255,255,0.4)), url('/bg-login.png');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+.board-bg {
+  background-color: #f9f7fd;
+  background-image: url('https://sdmntprnorthcentralus.oaiusercontent.com/files/00000000-8060-622f-a4ae-8d5e68fdafb2/raw?se=2025-04-17T02%3A30%3A00Z&sp=r&sv=2024-08-04&sr=b&sig=oGfrNaRRMOCwM1%2F1Tr%2F1Ktx7FiY6U%2Fw7EEmkT50UBM8%3D');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-attachment: fixed;
+}
+
+.emojis-container {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.emoji {
+  position: absolute;
+  top: 100%;
+  font-size: 1.3rem;
+  opacity: 0.1;
+  animation: float-rain 4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes float-rain {
+  0% {
+    transform: 
+      translateY(0)
+      translateX(var(--offset, 0))
+      scale(var(--scale, 1))
+      rotate(var(--rotate, 0deg));
+    opacity: 0;
+  }
+  30% {
+    opacity: var(--alpha, 0.3);
+  }
+  100% {
+    transform: 
+      translateY(-150px)
+      translateX(var(--offset, 0))
+      scale(var(--scale, 1))
+      rotate(var(--rotate, 0deg));
+    opacity: 0;
+  }
+}
