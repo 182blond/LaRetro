@@ -1,7 +1,7 @@
 <template>
   <div class="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 space-y-5 lg:space-y-0 py-4 px-2">
     <!-- Column Category -->
-    <div v-for="category in board.categories" :key="category.id"
+    <div v-for="category in categoriesComputed" :key="category.id"
       class="p-4 flex flex-col space-y-4 overflow-hidden mx-3 rounded-xl"
       :class="[`category-${category.id}`, 'category-box']">
 
@@ -31,7 +31,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useBoardStore } from '@/stores/board';
 import Card from '@/components/Card.vue';
 
@@ -75,4 +75,9 @@ const resetTextarea = (category) => {
     textarea.style.height = "auto";
   }
 };
+
+// Filter categories
+const categoriesComputed = computed(() => {
+  return board.categories.filter(c => !c.specialField);
+});
 </script>

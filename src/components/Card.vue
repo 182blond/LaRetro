@@ -1,6 +1,8 @@
 <template>
     <div
         class="relative bg-white py-2 px-4 mb-4 shadow-md rounded-md border-l-12 border-[var(--color-border)] z-0 flex flex-col gap-2 overflow-hidden break-words card relative overflow-hidden card-holo">
+
+
         <!-- Card content -->
         <div class="text-gray-700 break-word pr-2">
             <p>{{ card.content }}</p>
@@ -18,12 +20,15 @@
             </div>
         </div>
 
-        <button v-if="card.author == session.username" @click="emitDelete" class="absolute top-1 right-1 text-gray-500 hover:text-red-600 p-1 cursor-pointer"
-            aria-label="Eliminar">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
-                stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
+        <button
+            class="absolute top-1 right-1 text-gray-500 hover:text-red-600 p-1 cursor-pointer">
+                <SettingsMenu
+                :card-id="card.id"
+                :card-actionable="!!card.actionable" 
+                :on-select="handleSettingsOption"
+                :session="session"
+                :card-author="card.author"
+                />    
         </button>
 
         <!-- Footer -->
@@ -40,36 +45,19 @@
                         {{ r.emoji }} <span class="text-xs">{{ r.count }}</span>
                     </button>
                 </div>
+                <EmojiReactions :card-id="card.id" :emojis="emojis" :on-select="handleReaction" />
 
-                <!-- Botón de reacciones -->
-                <div class="relative flex justify-end">
-                    <button data-reaction-trigger @click="(e) => togglePopup(card.id, e)"
-                        class="text-xl hover:scale-110 transition cursor-pointer">
-                        <IconEmoji class="w-5 h-5" />
-                    </button>
-                </div>
-
-                <!-- Popup flotante -->
-                <Teleport to="body">
-                    <div v-if="showReactions === card.id"
-                        class="absolute z-50 bg-white border rounded shadow-lg p-2 flex gap-2" :style="popupStyles"
-                        ref="popupRef">
-                        <button v-for="(emoji, type) in emojis" :key="type" @click="selectReaction(type)"
-                            class="text-xl hover:scale-125 transition cursor-pointer">
-                            {{ emoji }}
-                        </button>
-                    </div>
-                </Teleport>
             </div>
         </div>
     </div>
 </template>
 
 <script setup>
-import { ref, defineProps, defineEmits, onBeforeUnmount, onMounted, computed } from 'vue';
+import { ref, defineProps, defineEmits, onBeforeUnmount, onMounted, computed, nextTick } from 'vue';
 import { useBoardStore } from '@/stores/board';
 import { useSessionStore } from '@/stores/session';
-import IconEmoji from '@/components/icons/IconEmoji.vue';
+import EmojiReactions from './EmojiReactions.vue';
+import SettingsMenu from './SettingsMenu.vue';
 
 const props = defineProps({ card: Object });
 const board = useBoardStore();
@@ -96,16 +84,25 @@ const emitDelete = () => {
     }
 };
 
+const handleSettingsOption = (option) => {
+    if (option === "delete") {
+        emitDelete();
+    }
+    if (option === "actionable") {
+        board.addToActionables(props.card.id);
+    }
+};
+
 
 // Reactions
-const showReactions = ref(null);
-const popupRef = ref(null);
-const popupStyles = ref({});
 const emojis = {
     heart: '❤️',
-    thumb: '👍',
-    laugh: '😂',
-    star: '⭐'
+    plus: '👍',
+    laugh: '🤣',
+    star: '⭐',
+    fire: '🔥',
+    sarcasm: '🙃',
+    sad: '😢'
 };
 
 const visibleReactions = computed(() => {
@@ -121,41 +118,36 @@ const visibleReactions = computed(() => {
         .sort((a, b) => emojiOrder.indexOf(a.type) - emojiOrder.indexOf(b.type));
 });
 
-const togglePopup = (id, event) => {
-    if (showReactions.value === id) {
-        showReactions.value = null;
-    } else {
-        showReactions.value = id;
-        const rect = event.currentTarget.getBoundingClientRect();
-        popupStyles.value = {
-            top: `${rect.top + window.scrollY - 50}px`,
-            left: `${rect.left + rect.width / 2}px`,
-            transform: 'translateX(-90%)',
-            position: 'absolute'
-        };
-    }
+
+let scrollLockTop = ref(0);
+
+
+const lockScroll = () => {
+  scrollLockTop.value = window.scrollY;
+  document.body.style.position = 'fixed';
+  document.body.style.top = `-${scrollLockTop.value}px`;
+  document.body.style.width = '100%';
 };
 
-const react = (type) => {
-    board.reactToCard(props.card.id, type);
+const unlockScroll = () => {
+  document.body.style.position = '';
+  document.body.style.top = '';
+  window.scrollTo(0, scrollLockTop.value);
 };
-const selectReaction = (type) => {
+
+const react = async (type) => {
+    lockScroll();
+    await board.reactToCard(props.card.id, type);
+    await nextTick();
+    unlockScroll();
+};
+const handleReaction = (type) => {
     react(type);
-    showReactions.value = null;
 };
 
 const hasReacted = (type) => {
     const userReactions = props.card.reactedBy?.[session.username] || [];
     return userReactions.includes(type);
-};
-
-const onClickOutside = (e) => {
-    const isOutsidePopup = popupRef.value && !popupRef.value.contains(e.target);
-    const isOutsideTrigger = !e.target.closest('[data-reaction-trigger]');
-
-    if (isOutsidePopup && isOutsideTrigger) {
-        showReactions.value = null;
-    }
 };
 
 // Find top emoji with at least 3 votes
@@ -172,10 +164,6 @@ const dominantEmoji = computed(() => {
 
     return null;
 });
-
-
-onMounted(() => document.addEventListener('click', onClickOutside));
-onBeforeUnmount(() => document.removeEventListener('click', onClickOutside));
 
 const totalEmojis = 20;
 const emojiGrid = Array.from({ length: totalEmojis }, () => {

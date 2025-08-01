@@ -24,6 +24,11 @@
   --color-text: #0d47a1;
 }
 
+.category-actionables {
+  --color-bg: #f0e6ff;
+  --color-border: #c084fc;
+  --color-text: #5b21b6;
+}
 
 .category-box {
   background-color: var(--color-bg);

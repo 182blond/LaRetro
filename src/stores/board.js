@@ -16,6 +16,7 @@ export const useBoardStore = defineStore('board', () => {
     { id: 'improve', name: 'Learned' },
     { id: 'actions', name: 'Loathed' },
     { id: 'ideas', name: 'Longed for' },
+    { id: 'actionables', name: 'Actionables', specialField: 'actionable' }
   ];
 
   // 💾 Watch and save cards
@@ -34,15 +35,16 @@ export const useBoardStore = defineStore('board', () => {
         id: doc.id,
         ...doc.data()
       }));
+      console.log(cards.value)
     });
   };
 
-  // 🔍 Filter my card  s
+  // 🔍 Filter my cards
   const myCards = computed(() =>
     cards.value.filter(card => card.author === session.username)
   );
 
-  // ➕ Add cardo
+  // ➕ Add card
   const addCard = async (text, category) => {
     const cardsRef = collection(db, 'boards', boardId, 'cards');
     const cardValue = {
@@ -88,6 +90,20 @@ export const useBoardStore = defineStore('board', () => {
     await updateDoc(cardRef, update);
   };
 
+  // 📌 Add to Actionables
+  const addToActionables = async (cardId) => {
+    const cardRef = doc(db, 'boards', boardId, 'cards', cardId);
+    const snap = await getDoc(cardRef);
+    if (!snap.exists()) return;
+
+    const data = snap.data();
+    const actionable = data.actionable || false;
+    await updateDoc(cardRef, {
+      actionable: !actionable
+    });
+
+  };
+
   // ✏️ Edit card (Not implemented)
   const editCard = (id, newText) => {
     const card = cards.value.find(card => card.id === id);
@@ -102,7 +118,7 @@ export const useBoardStore = defineStore('board', () => {
 
   loadCards();
 
-  return { cards, categories, loadCards, addCard, reactToCard, editCard, deleteCard, myCards };
+  return { cards, categories, loadCards, addCard, reactToCard, editCard, deleteCard, myCards, addToActionables };
 });
 
 const getTodayBoardId = (rawName) => {
